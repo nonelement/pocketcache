@@ -29,7 +29,7 @@ var (
 	token_url    string = "https://getpocket.com/v3/oauth/request"
 	redirect_url string = "https://getpocket.com/auth/authorize?request_token=%s&redirect_uri=about:blank"
 	access_url   string = "https://getpocket.com/v3/oauth/authorize"
-	get_url      string = "https://getpocket.com/v3/get_url"
+	get_url      string = "https://getpocket.com/v3/get"
 )
 
 type Config struct {
@@ -67,13 +67,18 @@ func export_data(data []byte) {
 	var with_nl bytes.Buffer
 
 	// Arbitrary structure to unmarshal into
-	var parsed map[string]interface{}
-	json.Unmarshal(data, &parsed)
+	var parsed interface{}
+	err := json.Unmarshal(data, &parsed)
+	if err != nil {
+		fmt.Printf("Error while unmarshalling export: %s", err)
+	}
+
 	marshalled, _ := json.MarshalIndent(parsed, "", "\t")
 	with_nl.Write(marshalled)
 	// Newlines at EOF are still important.
 	with_nl.WriteString("\n")
-	err := ioutil.WriteFile(export_path, with_nl.Bytes(), os.FileMode(int(0700)))
+
+	err = ioutil.WriteFile(export_path, with_nl.Bytes(), os.FileMode(int(0700)))
 	if err != nil {
 		fmt.Println("Problem exporting file: %s", err)
 	}
